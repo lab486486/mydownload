@@ -289,8 +289,7 @@ textarea {
 }
 
 .kicker,
-.breadcrumb,
-.filing-note {
+.breadcrumb {
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.06em;
@@ -316,6 +315,37 @@ textarea {
   max-width: 640px;
   color: var(--muted);
   font-size: 17px;
+}
+
+.hero {
+  position: relative;
+}
+
+.hero-crt {
+  display: none;
+}
+
+@media (min-width: 901px) {
+  .hero {
+    min-height: 400px;
+  }
+
+  .hero-crt {
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: min(44%, 400px);
+    background: url('/images/hero-crt.png') right center / contain no-repeat;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .index-card {
+    z-index: 1;
+    padding-right: min(40%, 380px);
+  }
 }
 
 .index-card {
@@ -1229,13 +1259,19 @@ textarea {
 
 .footer-inner {
   display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 16px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
 }
 
-.filing-note {
+.footer-copy {
   margin: 0;
+  line-height: 1.35;
+}
+
+.footer-legal {
+  font-size: 13px;
 }
 
 .empty {
