@@ -19,7 +19,16 @@ const { value = '', autofocus = false, compact = false } = Astro.props;
     required
     autofocus={autofocus}
   />
-  <button type="submit">{compact ? '찾기' : '자료 검색'}</button>
+  <button type="submit">
+    {compact ? (
+      '찾기'
+    ) : (
+      <>
+        <span class="search-label-full">자료 검색</span>
+        <span class="search-label-short">검색</span>
+      </>
+    )}
+  </button>
 </form>
 
 <style>

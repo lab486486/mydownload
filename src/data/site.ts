@@ -9,7 +9,6 @@ export const site = {
 
 export const popularQueries = [
   { label: '압축해제', query: '압축' },
-  { label: '백신', query: '백신' },
   { label: 'PDF뷰어', query: 'PDF' },
   { label: '한컴오피스', query: '한컴' },
   { label: '알집', query: '알집' },
