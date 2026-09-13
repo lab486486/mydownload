@@ -1,0 +1,19 @@
+---
+import type { SoftwareEntry } from '../lib/software';
+
+interface Props {
+  entry: SoftwareEntry;
+}
+
+const downloads = Astro.props.entry.data.downloads.slice(0, 2);
+---
+
+{downloads.length > 0 && (
+  <div class="download-bar">
+    {downloads.map((item) => (
+      <a href={item.url} rel="noopener noreferrer" target="_blank">
+        {item.label}
+      </a>
+    ))}
+  </div>
+)}

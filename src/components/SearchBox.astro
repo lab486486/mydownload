@@ -1,0 +1,35 @@
+---
+interface Props {
+  value?: string;
+  autofocus?: boolean;
+}
+
+const { value = '', autofocus = false } = Astro.props;
+---
+
+<form class="search-form" action="/search/" method="get">
+  <label class="visually-hidden" for="q">프로그램 검색</label>
+  <input
+    id="q"
+    type="search"
+    name="q"
+    value={value}
+    placeholder="프로그램 이름을 입력하세요"
+    required
+    autofocus={autofocus}
+  />
+  <button type="submit">자료 검색</button>
+</form>
+
+<style>
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+</style>

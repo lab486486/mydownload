@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: /admin/
+Sitemap: https://mydownload.co.kr/sitemap-index.xml

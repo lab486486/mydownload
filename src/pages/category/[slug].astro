@@ -1,0 +1,41 @@
+---
+import Base from '../../layouts/Base.astro';
+import SoftwareCard from '../../components/SoftwareCard.astro';
+import { categories, getCategory } from '../../lib/categories';
+import { getSoftwareByCategory } from '../../lib/software';
+
+export function getStaticPaths() {
+  return categories.map((category) => ({ params: { slug: category.slug } }));
+}
+
+const { slug } = Astro.params;
+const category = getCategory(slug!);
+if (!category) {
+  throw new Error(`Unknown category: ${slug}`);
+}
+
+const entries = await getSoftwareByCategory(category.slug);
+---
+
+<Base title={category.name} description={category.description}>
+  <section class="hero">
+    <div class="wrap">
+      <p class="breadcrumb"><a href="/">자료실</a> / {category.name}</p>
+      <h1 class="page-title">{category.name}</h1>
+      <p class="lede">{category.description}. {entries.length}개 자료.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="wrap">
+      {entries.length === 0 ? (
+        <div class="empty">이 분류에 아직 자료가 없습니다.</div>
+      ) : (
+        <div class="card-grid">
+          {entries.map((entry) => (
+            <SoftwareCard entry={entry} />
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</Base>

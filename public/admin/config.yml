@@ -1,0 +1,100 @@
+backend:
+  name: github
+  repo: lab486486/mydownload
+  branch: main
+local_backend: true
+media_folder: public/uploads
+public_folder: /uploads
+locale: ko
+slug:
+  encoding: ascii
+  clean_accents: true
+
+collections:
+  - name: queue
+    label: 작성 지시
+    label_singular: 지시
+    folder: src/content/queue
+    create: true
+    slug: '{{name}}'
+    extension: md
+    format: frontmatter
+    fields:
+      - { name: name, label: 프로그램 이름, widget: string }
+      - name: category
+        label: 카테고리
+        widget: select
+        options:
+          - { label: 유틸리티, value: utility }
+          - { label: 문서편집, value: office }
+          - { label: 동영상/오디오, value: media }
+          - { label: PC관리/보안, value: security }
+          - { label: 인터넷/통신, value: internet }
+          - { label: 이미지/그래픽, value: graphics }
+      - { name: windows, label: Windows 공식 주소, widget: string, required: false }
+      - { name: macos, label: macOS 공식 주소, widget: string, required: false }
+      - { name: linux, label: Linux 공식 주소, widget: string, required: false }
+      - { name: android, label: Android 공식 주소, widget: string, required: false }
+      - { name: ios, label: iOS 공식 주소, widget: string, required: false }
+      - { name: icon, label: 아이콘, widget: image, required: false }
+      - { name: featured, label: 홈 노출, widget: boolean, default: false }
+      - name: status
+        label: 상태
+        widget: select
+        options: [pending, done, error, template]
+        default: pending
+      - { name: note, label: 메모, widget: string, required: false }
+  - name: software
+    label: 소프트웨어
+    label_singular: 자료
+    folder: src/content/software
+    create: true
+    slug: '{{legacyId}}-{{name}}'
+    extension: md
+    format: frontmatter
+    fields:
+      - { name: title, label: 페이지 제목, widget: string }
+      - { name: name, label: 프로그램 이름, widget: string }
+      - name: category
+        label: 카테고리
+        widget: select
+        options:
+          - { label: 유틸리티, value: utility }
+          - { label: 문서편집, value: office }
+          - { label: 동영상/오디오, value: media }
+          - { label: PC관리/보안, value: security }
+          - { label: 인터넷/통신, value: internet }
+          - { label: 이미지/그래픽, value: graphics }
+      - { name: entrySlug, label: URL 슬러그, widget: string }
+      - { name: legacyPath, label: 기존 경로, widget: string }
+      - { name: date, label: 작성일, widget: datetime }
+      - { name: updated, label: 수정일, widget: datetime, required: false }
+      - { name: excerpt, label: 한 줄 설명, widget: text, required: false }
+      - { name: developer, label: 개발사, widget: string, required: false }
+      - { name: license, label: 라이선스, widget: string, required: false }
+      - { name: rating, label: 평점, widget: number, required: false, value_type: float, min: 0, max: 5, step: 0.1 }
+      - { name: icon, label: 아이콘, widget: image, required: false }
+      - { name: featured, label: 홈 노출, widget: boolean, default: false }
+      - { name: hiddenFromList, label: 목록에서 숨김, widget: boolean, default: false }
+      - { name: canonical, label: Canonical 경로, widget: string, required: false }
+      - { name: softwareKey, label: 중복 그룹 키, widget: string, required: false }
+      - { name: legacyId, label: 워드프레스 ID, widget: number, required: false }
+      - name: os
+        label: 지원 OS
+        widget: select
+        multiple: true
+        required: false
+        options: [windows, macos, linux, android, ios]
+      - name: downloads
+        label: 공식 다운로드
+        widget: list
+        required: false
+        fields:
+          - { name: os, label: OS, widget: string }
+          - { name: label, label: 버튼 이름, widget: string }
+          - { name: url, label: 공식 URL, widget: string }
+      - name: tags
+        label: 태그
+        widget: list
+        required: false
+      - { name: body, label: 본문, widget: markdown }

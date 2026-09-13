@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import SearchBox from '../components/SearchBox.astro';
+---
+
+<Base title="자료 검색" description="마이 다운로드 자료실에서 프로그램을 찾습니다.">
+  <section class="hero">
+    <div class="wrap">
+      <p class="kicker">Search</p>
+      <h1 class="page-title">자료 검색</h1>
+      <SearchBox />
+    </div>
+  </section>
+  <section class="section">
+    <div class="wrap">
+      <p id="search-status" class="muted">검색어를 입력하면 이름, 설명, 태그에서 찾습니다.</p>
+      <div id="search-results" class="card-grid" style="margin-top: 20px;"></div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import Fuse from 'fuse.js';
+
+  type Item = {
+    name: string;
+    title: string;
+    excerpt: string;
+    href: string;
+    category: string;
+    os: string[];
+    icon?: string;
+    tags: string[];
+  };
+
+  const status = document.getElementById('search-status');
+  const results = document.getElementById('search-results');
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get('q')?.trim() ?? '';
+  const input = document.querySelector<HTMLInputElement>('#q');
+  if (input && query) input.value = query;
+
+  function card(item: Item) {
+    const icon = item.icon
+      ? `<img class="icon" src="${item.icon}" alt="" width="56" height="56" />`
+      : `<span class="icon fallback">${item.name.slice(0, 1)}</span>`;
+    const pills = [item.category, ...item.os.slice(0, 2)]
+      .map((label) => `<span class="pill">${label}</span>`)
+      .join('');
+    return `<a class="software-card" href="${item.href}">
+      ${icon}
+      <div>
+        <h3>${item.name}</h3>
+        <p>${item.excerpt || item.title}</p>
+        <div class="meta">${pills}</div>
+      </div>
+    </a>`;
+  }
+
+  const index = await fetch('/search-index.json').then((response) => response.json()) as Item[];
+  const fuse = new Fuse(index, {
+    threshold: 0.35,
+    keys: ['name', 'title', 'excerpt', 'tags', 'category'],
+  });
+
+  if (query && status && results) {
+    const matches = fuse.search(query).map((item) => item.item);
+    status.textContent = matches.length
+      ? `"${query}" 검색 결과 ${matches.length}개`
+      : `"${query}"에 해당하는 자료가 없습니다.`;
+    results.innerHTML = matches.map(card).join('');
+  }
+</script>

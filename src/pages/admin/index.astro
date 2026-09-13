@@ -1,0 +1,227 @@
+---
+import Base from '../../layouts/Base.astro';
+import { categories } from '../../lib/categories';
+import { entryPath, getListedSoftware } from '../../lib/software';
+
+const posts = await getListedSoftware();
+---
+
+<Base title="자료 작성" description="다운로드 글 지시를 넣습니다." noindex>
+  <section class="admin-page">
+    <div class="wrap">
+      <p class="kicker">관리자</p>
+      <h1 class="page-title">다운로드 글 넣기</h1>
+      <p class="lede">
+        본문 에디터가 아닙니다. 프로그램 이름과 공식 다운로드 주소만 넣으면 대기 목록에 쌓이고,
+        GitHub Action이 DeepSeek로 마크다운을 만든 뒤 Cloudflare에 올립니다.
+        이미 올라간 글을 직접 고치려면 <a href="/admin/cms/">Decap CMS</a>를 씁니다.
+      </p>
+
+      <div class="admin-tabs" role="tablist">
+        <button type="button" class="is-active" data-tab="write" role="tab" aria-selected="true">자료 작성</button>
+        <button type="button" data-tab="queue" role="tab" aria-selected="false">작성 대기</button>
+        <button type="button" data-tab="posts" role="tab" aria-selected="false">발행된 글</button>
+      </div>
+
+      <section id="panel-write" class="admin-panel" data-panel="write">
+        <form id="download-form" class="write-form">
+          <label>
+            <span>프로그램 이름</span>
+            <input type="text" name="name" required placeholder="예: 7-Zip" autocomplete="off" />
+          </label>
+          <label>
+            <span>카테고리</span>
+            <select name="category" required>
+              {categories.map((category) => (
+                <option value={category.slug}>{category.name}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Windows 공식 주소</span>
+            <input type="url" name="windows" placeholder="https://" />
+          </label>
+          <label>
+            <span>macOS 공식 주소</span>
+            <input type="url" name="macos" placeholder="https://" />
+          </label>
+          <label>
+            <span>Linux 공식 주소</span>
+            <input type="url" name="linux" placeholder="https://" />
+          </label>
+          <label>
+            <span>Android 공식 주소</span>
+            <input type="url" name="android" placeholder="https://" />
+          </label>
+          <label>
+            <span>iOS 공식 주소</span>
+            <input type="url" name="ios" placeholder="https://" />
+          </label>
+          <label>
+            <span>아이콘 주소</span>
+            <input type="url" name="icon_url" placeholder="https:// 또는 아래에서 파일 선택" />
+          </label>
+          <label>
+            <span>아이콘 파일</span>
+            <input type="file" name="icon_file" accept="image/jpeg,image/png,image/webp,image/gif" />
+          </label>
+          <label>
+            <span>메모 / 요청사항</span>
+            <textarea name="note" rows="3" placeholder="선택. 예: 기업도 무료라는 점 강조"></textarea>
+          </label>
+          <label class="choice">
+            <input type="checkbox" name="featured" />
+            <span>홈 최근 자료에 우선 노출</span>
+          </label>
+          <p id="form-status" class="form-status" role="status"></p>
+          <button type="submit" class="primary-btn">대기 목록에 넣기</button>
+        </form>
+      </section>
+
+      <section id="panel-queue" class="admin-panel is-hidden" data-panel="queue" hidden>
+        <ul id="queue-list" class="admin-list"></ul>
+      </section>
+
+      <section id="panel-posts" class="admin-panel is-hidden" data-panel="posts" hidden>
+        {posts.length === 0 ? (
+          <p class="empty">아직 발행된 글이 없습니다.</p>
+        ) : (
+          <ul class="admin-list">
+            {posts.map((post) => (
+              <li>
+                <a href={entryPath(post)}>
+                  <strong>{post.data.name}</strong>
+                  <span>{post.data.title}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const tabs = document.querySelectorAll<HTMLButtonElement>('.admin-tabs button');
+  const panels = document.querySelectorAll<HTMLElement>('[data-panel]');
+  const form = document.querySelector<HTMLFormElement>('#download-form');
+  const statusEl = document.querySelector<HTMLElement>('#form-status');
+  const queueList = document.querySelector<HTMLElement>('#queue-list');
+
+  function showTab(name: string) {
+    tabs.forEach((tab) => {
+      const active = tab.dataset.tab === name;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    panels.forEach((panel) => {
+      const active = panel.dataset.panel === name;
+      panel.hidden = !active;
+      panel.classList.toggle('is-hidden', !active);
+    });
+    if (name === 'queue') void loadQueue();
+  }
+
+  function setStatus(message: string, kind: 'ok' | 'error' | '') {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    statusEl.dataset.kind = kind;
+  }
+
+  async function loadQueue() {
+    if (!queueList) return;
+    try {
+      const res = await fetch('/api/download-queue/');
+      const data = await res.json();
+      const items = Array.isArray(data.items) ? data.items : [];
+      if (!items.length) {
+        queueList.innerHTML = '<li class="empty">대기 중인 자료가 없습니다.</li>';
+        return;
+      }
+      queueList.innerHTML = items
+        .map((item: { name: string; category: string; status: string; note: string }) => {
+          const label =
+            item.status === 'pending'
+              ? '대기'
+              : item.status === 'done'
+                ? '완료'
+                : item.status === 'error'
+                  ? '오류'
+                  : item.status;
+          return `<li><strong>${item.name}</strong><span>${item.category}${item.note ? ` · ${item.note}` : ''}</span><em data-status="${item.status}">${label}</em></li>`;
+        })
+        .join('');
+    } catch {
+      queueList.innerHTML =
+        '<li class="empty">목록을 불러오지 못했습니다. npm run dev 로 켜져 있는지 확인해 주세요.</li>';
+    }
+  }
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => showTab(tab.dataset.tab || 'write'));
+  });
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form) return;
+    const data = new FormData(form);
+    const name = String(data.get('name') || '').trim();
+    let icon = String(data.get('icon_url') || '').trim();
+    const file = data.get('icon_file');
+
+    setStatus('저장 중…', '');
+    try {
+      if (file instanceof File && file.size > 0) {
+        const buffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        bytes.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        const upload = await fetch('/api/download-upload/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            mime: file.type,
+            data: btoa(binary),
+          }),
+        });
+        const uploaded = await upload.json();
+        if (!upload.ok) throw new Error(uploaded.error || '이미지 업로드 실패');
+        icon = uploaded.url;
+      }
+
+      const res = await fetch('/api/download-queue/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          category: String(data.get('category') || ''),
+          windows: String(data.get('windows') || '').trim(),
+          macos: String(data.get('macos') || '').trim(),
+          linux: String(data.get('linux') || '').trim(),
+          android: String(data.get('android') || '').trim(),
+          ios: String(data.get('ios') || '').trim(),
+          icon,
+          featured: data.get('featured') === 'on',
+          note: String(data.get('note') || '').trim(),
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || '저장 실패');
+      form.reset();
+      setStatus(`${name}을(를) 대기 목록에 넣었습니다.`, 'ok');
+      showTab('queue');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '저장에 실패했습니다.';
+      setStatus(
+        message.includes('Failed to fetch')
+          ? '저장 API가 없습니다. 터미널에서 npm run dev 로 사이트를 켜 주세요.'
+          : message,
+        'error',
+      );
+    }
+  });
+</script>

@@ -1,0 +1,23 @@
+---
+import { categories } from '../lib/categories';
+---
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark">M</span>
+      <span class="brand-name">마이 다운로드</span>
+      <span class="brand-sub">자료실</span>
+    </a>
+    <nav class="nav" aria-label="카테고리">
+      {categories.map((category) => (
+        <a href={`/category/${category.slug}/`}>{category.name}</a>
+      ))}
+    </nav>
+  </div>
+  <div class="mobile-nav wrap">
+    {categories.map((category) => (
+      <a href={`/category/${category.slug}/`}>{category.name}</a>
+    ))}
+  </div>
+</header>

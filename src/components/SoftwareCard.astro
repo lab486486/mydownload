@@ -1,0 +1,29 @@
+---
+import { categoryLabel, entryPath, osLabel, type SoftwareEntry } from '../lib/software';
+
+interface Props {
+  entry: SoftwareEntry;
+}
+
+const { entry } = Astro.props;
+const href = entryPath(entry);
+const initial = entry.data.name.slice(0, 1);
+---
+
+<a class="software-card" href={href}>
+  {entry.data.icon ? (
+    <img class="icon" src={entry.data.icon} alt="" width="56" height="56" />
+  ) : (
+    <span class="icon fallback">{initial}</span>
+  )}
+  <div>
+    <h3>{entry.data.name}</h3>
+    <p>{entry.data.excerpt ?? entry.data.title}</p>
+    <div class="meta">
+      <span class="pill">{categoryLabel(entry)}</span>
+      {entry.data.os.slice(0, 3).map((os) => (
+        <span class="pill">{osLabel(os)}</span>
+      ))}
+    </div>
+  </div>
+</a>

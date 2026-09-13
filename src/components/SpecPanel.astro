@@ -1,0 +1,42 @@
+---
+import { osLabel, type SoftwareEntry } from '../lib/software';
+
+interface Props {
+  entry: SoftwareEntry;
+}
+
+const { entry } = Astro.props;
+const { data } = entry;
+---
+
+<aside class="panel spec-panel">
+  {data.icon ? (
+    <img class="icon" src={data.icon} alt="" width="56" height="56" />
+  ) : (
+    <span class="icon fallback">{data.name.slice(0, 1)}</span>
+  )}
+  <strong>{data.name}</strong>
+  {data.rating && (
+    <p class="rating">평점 {data.rating.toFixed(1)} / 5.0</p>
+  )}
+  {data.downloads.length > 0 && (
+    <div class="download-list">
+      {data.downloads.map((item) => (
+        <a href={item.url} rel="noopener noreferrer" target="_blank">
+          {item.label}
+        </a>
+      ))}
+    </div>
+  )}
+  <ul class="spec-list">
+    {data.developer && (
+      <li><span>개발사</span><b>{data.developer}</b></li>
+    )}
+    {data.license && (
+      <li><span>라이선스</span><b>{data.license}</b></li>
+    )}
+    {data.os.length > 0 && (
+      <li><span>지원 OS</span><b>{data.os.map(osLabel).join(', ')}</b></li>
+    )}
+  </ul>
+</aside>

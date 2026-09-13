@@ -1,0 +1,70 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import SpecPanel from '../../components/SpecPanel.astro';
+import DownloadBar from '../../components/DownloadBar.astro';
+import SoftwareCard from '../../components/SoftwareCard.astro';
+import { getCategory } from '../../lib/categories';
+import {
+  entryPath,
+  getRelatedSoftware,
+  getSoftware,
+} from '../../lib/software';
+
+export async function getStaticPaths() {
+  const entries = await getSoftware();
+  return entries.map((entry) => ({
+    params: { slug: entry.data.entrySlug },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const related = await getRelatedSoftware(entry);
+const category = getCategory(entry.data.category);
+const canonical = entry.data.canonical ?? entryPath(entry);
+---
+
+<Base
+  title={entry.data.title}
+  description={entry.data.excerpt ?? entry.data.title}
+  canonical={canonical}
+  image={entry.data.icon}
+>
+  <div class="wrap entry-layout">
+    <article>
+      <p class="breadcrumb">
+        <a href="/">자료실</a>
+        {category && (
+          <>
+            / <a href={`/category/${category.slug}/`}>{category.name}</a>
+          </>
+        )}
+      </p>
+      <h1 class="page-title">{entry.data.title}</h1>
+      {entry.data.excerpt && <p class="lede">{entry.data.excerpt}</p>}
+      <div class="prose">
+        <Content />
+      </div>
+    </article>
+    <SpecPanel entry={entry} />
+  </div>
+
+  {related.length > 0 && (
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>함께 보면 좋은 자료</h2>
+        </div>
+        <div class="card-grid">
+          {related.map((item) => (
+            <SoftwareCard entry={item} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <DownloadBar entry={entry} />
+</Base>
