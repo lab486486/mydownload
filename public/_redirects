@@ -426,6 +426,7 @@
 /p/3371 /entry/7zip/ 301
 /p/3371/ /entry/7zip/ 301
 
-# 첨부 파일 옛 주소는 글 본문으로
-/entry/:slug/* /entry/:slug/ 301
+# 첨부 파일 옛 주소는 글 본문으로. 빈 splat은 /entry/slug/ 자신을 다시 보내므로 한 단 이상일 때만 건다.
+/entry/:slug/:file /entry/:slug/ 301
+/entry/:slug/:file/* /entry/:slug/ 301
 
