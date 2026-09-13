@@ -1,6 +1,5 @@
-/rss /rss/ 301
-/rss.xml /rss/ 301
-/rss.xml/ /rss/ 301
+/rss /rss.xml 200
+/rss/ /rss.xml 200
 
 /entry/category/유틸리티 /category/utility/ 301
 /entry/category/%ec%9c%a0%ed%8b%b8%eb%a6%ac%ed%8b%b0 /category/utility/ 301
