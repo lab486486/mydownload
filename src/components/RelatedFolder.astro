@@ -1,0 +1,42 @@
+---
+import { categoryPath } from '../lib/categories';
+import { entryPath, type SoftwareEntry } from '../lib/software';
+
+interface Props {
+  title: string;
+  slug?: string;
+  entries: SoftwareEntry[];
+}
+
+const { title, slug, entries } = Astro.props;
+---
+
+<aside class="related-sidebar" aria-label="같은 폴더의 자료">
+  <div class="related-card">
+    <div class="related-head">
+      <p class="related-kicker">같은 폴더</p>
+      <strong>{title}</strong>
+    </div>
+    {entries.length > 0 ? (
+      <ul class="related-list">
+        {entries.map((item) => (
+          <li>
+            <a href={entryPath(item)}>
+              {item.data.icon ? (
+                <img class="file-icon" src={item.data.icon} alt="" width="20" height="20" />
+              ) : (
+                <span class="file-icon fallback">{item.data.name.slice(0, 1)}</span>
+              )}
+              <span class="file-name" title={item.data.title}>{item.data.name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="muted">같은 폴더에 다른 자료가 없습니다.</p>
+    )}
+    {slug && (
+      <a class="related-more" href={categoryPath(slug)}>폴더 열기</a>
+    )}
+  </div>
+</aside>

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { categoryLabel, entryPath, getListedSoftware } from '../lib/software';
+import { categoryLabel, entryPath, fileDate, getListedSoftware, osList } from '../lib/software';
 
 export const GET: APIRoute = async () => {
   const entries = await getListedSoftware();
@@ -9,7 +9,9 @@ export const GET: APIRoute = async () => {
     excerpt: entry.data.excerpt ?? '',
     href: entryPath(entry),
     category: categoryLabel(entry),
-    os: entry.data.os,
+    os: osList(entry),
+    developer: entry.data.developer ?? '—',
+    date: fileDate(entry),
     icon: entry.data.icon,
     tags: entry.data.tags,
   }));

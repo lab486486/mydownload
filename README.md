@@ -20,6 +20,7 @@ npm run dev
 
 - 글: `src/content/software/*.md`
 - 작성 지시: `src/content/queue/*.md` (`status: pending`)
+- 워드프레스 보내기 주소 점검: `npm run import:wxr`
 - 이미지: `public/uploads/` (마이그레이션 결과)
 - 홈 링크/스토어: `src/data/site.ts`
 

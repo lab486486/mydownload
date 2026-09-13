@@ -1,0 +1,37 @@
+---
+import { specRows, type SoftwareEntry } from '../lib/software';
+
+interface Props {
+  entry: SoftwareEntry;
+}
+
+const { entry } = Astro.props;
+const rows = specRows(entry);
+const cover = entry.data.icon;
+const initial = entry.data.name.slice(0, 1);
+---
+
+{rows.length > 0 && (
+  <section class="spec-table-wrap" aria-labelledby="spec-table-title">
+    <h2 id="spec-table-title">권장사양 / 성능</h2>
+    <div class="spec-board">
+      <div class="spec-cover">
+        {cover ? (
+          <img src={cover} alt="" width="160" height="160" />
+        ) : (
+          <span class="spec-cover-fallback">{initial}</span>
+        )}
+      </div>
+      <table class="spec-table">
+        <tbody>
+          {rows.map((row) => (
+            <tr>
+              <th scope="row">{row.label}</th>
+              <td>{row.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+)}

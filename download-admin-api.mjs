@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const QUEUE_DIR = path.join(ROOT, 'src', 'content', 'queue');
+const SOFTWARE_DIR = path.join(ROOT, 'src', 'content', 'software');
 const UPLOAD_DIR = path.join(ROOT, 'public', 'uploads');
+const OS_FIELDS = ['windows', 'macos', 'linux', 'android', 'ios'];
 
 const IMAGE_EXT = {
   'image/jpeg': 'jpg',
@@ -33,43 +35,207 @@ function readBody(req) {
 }
 
 function yamlScalar(value) {
+  if (typeof value === 'boolean' || typeof value === 'number') return String(value);
   if (value == null || value === '') return '""';
-  const text = String(value);
-  return JSON.stringify(text);
+  return JSON.stringify(String(value));
 }
 
 function dumpFrontmatter(data) {
   const lines = ['---'];
   for (const [key, value] of Object.entries(data)) {
+    if (value === undefined || value === null || value === '') continue;
     if (Array.isArray(value)) {
+      if (value.length === 0) {
+        lines.push(`${key}: []`);
+        continue;
+      }
       lines.push(`${key}:`);
-      for (const item of value) lines.push(`  - ${yamlScalar(item)}`);
+      for (const item of value) {
+        if (item && typeof item === 'object') {
+          const keys = Object.keys(item);
+          lines.push(`  - ${keys[0]}: ${yamlScalar(item[keys[0]])}`);
+          for (const nested of keys.slice(1)) {
+            lines.push(`    ${nested}: ${yamlScalar(item[nested])}`);
+          }
+        } else {
+          lines.push(`  - ${yamlScalar(item)}`);
+        }
+      }
       continue;
     }
-    if (typeof value === 'boolean') {
+    if (typeof value === 'boolean' || typeof value === 'number') {
       lines.push(`${key}: ${value}`);
       continue;
     }
-    lines.push(`${key}: ${yamlScalar(value ?? '')}`);
+    lines.push(`${key}: ${yamlScalar(value)}`);
   }
   lines.push('---', '');
   return `${lines.join('\n')}`;
 }
 
-function parseFrontmatter(text) {
+function coerceYaml(value) {
+  const text = String(value ?? '').trim();
+  if (text === 'true') return true;
+  if (text === 'false') return false;
+  if (text === '[]') return [];
+  if (text !== '' && /^-?\d+(\.\d+)?$/.test(text)) return Number(text);
+  return text.replace(/^["']|["']$/g, '');
+}
+
+function parseMarkdown(text) {
   const stripped = text.replace(/^\uFEFF/, '');
-  if (!stripped.startsWith('---')) return {};
-  const parts = stripped.split('---', 3);
-  if (parts.length < 3) return {};
+  if (!stripped.startsWith('---')) return { data: {}, body: stripped };
+  const rest = stripped.slice(3);
+  const end = rest.indexOf('\n---');
+  if (end === -1) return { data: {}, body: stripped };
+  const raw = rest.slice(0, end);
+  const body = rest.slice(end + 4).replace(/^\n/, '');
   const data = {};
-  for (const line of parts[1].split('\n')) {
-    if (!line.trim() || !line.includes(':')) continue;
-    const idx = line.indexOf(':');
-    const key = line.slice(0, idx).trim();
-    const value = line.slice(idx + 1).trim().replace(/^["']|["']$/g, '');
-    if (key) data[key] = value;
+  let current;
+  let currentObject;
+  for (const line of raw.split('\n')) {
+    if (!line.trim()) continue;
+    const nested = line.match(/^    ([A-Za-z0-9_]+):\s*(.*)$/);
+    if (current && currentObject && nested) {
+      currentObject[nested[1]] = coerceYaml(nested[2]);
+      continue;
+    }
+    const listObject = line.match(/^  - ([A-Za-z0-9_]+):\s*(.*)$/);
+    if (current && listObject) {
+      currentObject = { [listObject[1]]: coerceYaml(listObject[2]) };
+      data[current].push(currentObject);
+      continue;
+    }
+    const listValue = line.match(/^  - (.*)$/);
+    if (current && listValue) {
+      data[current].push(coerceYaml(listValue[1]));
+      currentObject = null;
+      continue;
+    }
+    const match = line.match(/^([A-Za-z0-9_]+):\s*(.*)$/);
+    if (!match) continue;
+    current = match[1];
+    currentObject = null;
+    const value = match[2];
+    if (value === '' || value === '[]') {
+      data[current] = [];
+      if (value === '[]') current = undefined;
+      continue;
+    }
+    data[current] = coerceYaml(value);
+    current = undefined;
   }
-  return data;
+  return { data, body };
+}
+
+function parseFrontmatter(text) {
+  return parseMarkdown(text).data;
+}
+
+function safeFile(name) {
+  const file = path.basename(String(name || ''));
+  if (!file.endsWith('.md') || file.startsWith('_') || file.includes('..')) {
+    throw new Error('글 파일을 확인해 주세요.');
+  }
+  return file;
+}
+
+function downloadsFromBody(body, existing = []) {
+  const labels = Object.fromEntries(
+    (existing || []).filter((item) => item && item.os).map((item) => [item.os, item.label]),
+  );
+  const downloads = [];
+  for (const os of OS_FIELDS) {
+    const url = String(body[os] || '').trim();
+    if (!url) continue;
+    const fallback = `${os === 'macos' ? 'macOS' : os[0].toUpperCase() + os.slice(1)} 다운로드`;
+    downloads.push({
+      os,
+      label: body[`${os}Label`] || labels[os] || fallback,
+      url,
+    });
+  }
+  return downloads;
+}
+
+function urlsFromDownloads(downloads = []) {
+  const urls = { windows: '', macos: '', linux: '', android: '', ios: '' };
+  for (const item of downloads) {
+    if (item && urls[item.os] === '') urls[item.os] = item.url || '';
+  }
+  return urls;
+}
+
+async function listPosts() {
+  let names = [];
+  try {
+    names = await readdir(SOFTWARE_DIR);
+  } catch {
+    return [];
+  }
+  const items = [];
+  for (const file of names.sort()) {
+    if (!file.endsWith('.md')) continue;
+    const { data } = parseMarkdown(await readFile(path.join(SOFTWARE_DIR, file), 'utf8'));
+    items.push({
+      file,
+      name: data.name || file.replace(/\.md$/, ''),
+      title: data.title || '',
+      category: data.category || '',
+      entrySlug: data.entrySlug || '',
+      path: data.legacyPath || (data.entrySlug ? `/entry/${data.entrySlug}/` : ''),
+      hiddenFromList: Boolean(data.hiddenFromList),
+      featured: Boolean(data.featured),
+    });
+  }
+  return items.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+}
+
+async function readPost(file) {
+  const dest = path.join(SOFTWARE_DIR, safeFile(file));
+  const { data, body } = parseMarkdown(await readFile(dest, 'utf8'));
+  return {
+    file: path.basename(dest),
+    ...data,
+    ...urlsFromDownloads(data.downloads || []),
+    body,
+  };
+}
+
+async function writePost(file, patch) {
+  const dest = path.join(SOFTWARE_DIR, safeFile(file));
+  const current = parseMarkdown(await readFile(dest, 'utf8'));
+  const category = String(patch.category ?? current.data.category ?? '');
+  if (!CATEGORIES.has(category)) {
+    throw new Error('카테고리를 선택해 주세요.');
+  }
+  const downloads = downloadsFromBody(patch, current.data.downloads || []);
+  if (downloads.length === 0 && Array.isArray(current.data.downloads)) {
+    // keep existing if editor cleared none intentionally? require at least one if provided empty - keep old
+  }
+  const next = {
+    ...current.data,
+    title: String(patch.title || current.data.title || '').trim(),
+    name: safeName(patch.name || current.data.name),
+    category,
+    excerpt: String(patch.excerpt || '').trim(),
+    icon: String(patch.icon || '').trim(),
+    featured: Boolean(patch.featured),
+    hiddenFromList: Boolean(patch.hiddenFromList),
+    developer: String(patch.developer || current.data.developer || '').trim(),
+    license: String(patch.license || current.data.license || '').trim(),
+    updated: new Date().toISOString().slice(0, 19),
+  };
+  if (downloads.length) {
+    next.downloads = downloads;
+    next.os = [...new Set(downloads.map((item) => item.os))];
+  }
+  if (patch.rating !== undefined && patch.rating !== '') {
+    next.rating = Number(patch.rating);
+  }
+  const body = String(patch.body ?? current.body ?? '').replace(/\s+$/, '') + '\n';
+  await writeFile(dest, `${dumpFrontmatter(next)}${body}`, 'utf8');
+  return { ok: true, file: path.basename(dest), path: next.legacyPath || `/entry/${next.entrySlug}/` };
 }
 
 function safeName(name) {
@@ -170,6 +336,20 @@ export function downloadAdminApi() {
                 });
                 await writeFile(dest, markdown, 'utf8');
                 return send(res, 200, { ok: true, file: path.basename(dest) });
+              }
+
+              if (url === '/api/download-posts' && req.method === 'GET') {
+                return send(res, 200, { items: await listPosts() });
+              }
+
+              if (url === '/api/download-post' && req.method === 'GET') {
+                const query = new URL(req.url || '/', 'http://localhost').searchParams;
+                return send(res, 200, await readPost(query.get('file')));
+              }
+
+              if (url === '/api/download-post' && req.method === 'POST') {
+                const body = JSON.parse((await readBody(req)).toString('utf8') || '{}');
+                return send(res, 200, await writePost(body.file, body));
               }
 
               if (url === '/api/download-upload' && req.method === 'POST') {

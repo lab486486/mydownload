@@ -1,9 +1,12 @@
 ---
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import SpecPanel from '../../components/SpecPanel.astro';
+import ArticleIntro from '../../components/ArticleIntro.astro';
+import SpecTable from '../../components/SpecTable.astro';
+import AdSlot from '../../components/AdSlot.astro';
+import RelatedFolder from '../../components/RelatedFolder.astro';
 import DownloadBar from '../../components/DownloadBar.astro';
-import SoftwareCard from '../../components/SoftwareCard.astro';
+import FaqEnhance from '../../components/FaqEnhance.astro';
 import { getCategory } from '../../lib/categories';
 import {
   entryPath,
@@ -24,6 +27,7 @@ const { Content } = await render(entry);
 const related = await getRelatedSoftware(entry);
 const category = getCategory(entry.data.category);
 const canonical = entry.data.canonical ?? entryPath(entry);
+const hideFirstImage = Boolean(entry.data.icon) && /^\s*!\[/.test(entry.body);
 ---
 
 <Base
@@ -31,9 +35,10 @@ const canonical = entry.data.canonical ?? entryPath(entry);
   description={entry.data.excerpt ?? entry.data.title}
   canonical={canonical}
   image={entry.data.icon}
+  folder={entry.data.category}
 >
-  <div class="wrap entry-layout">
-    <article>
+  <div class="entry-layout">
+    <article class:list={['entry-article', { 'has-cover': hideFirstImage }]}>
       <p class="breadcrumb">
         <a href="/">자료실</a>
         {category && (
@@ -41,30 +46,26 @@ const canonical = entry.data.canonical ?? entryPath(entry);
             / <a href={`/category/${category.slug}/`}>{category.name}</a>
           </>
         )}
+        / {entry.data.name}
       </p>
       <h1 class="page-title">{entry.data.title}</h1>
       {entry.data.excerpt && <p class="lede">{entry.data.excerpt}</p>}
+      <SpecTable entry={entry} />
+      <div class="ad-inarticle">
+        <AdSlot adSlot="5384795752" label="본문 중간" />
+      </div>
+      <ArticleIntro entry={entry} />
       <div class="prose">
         <Content />
       </div>
     </article>
-    <SpecPanel entry={entry} />
+    <RelatedFolder
+      title={category?.name ?? '관련 자료'}
+      slug={category?.slug}
+      entries={related}
+    />
   </div>
 
-  {related.length > 0 && (
-    <section class="section">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>함께 보면 좋은 자료</h2>
-        </div>
-        <div class="card-grid">
-          {related.map((item) => (
-            <SoftwareCard entry={item} />
-          ))}
-        </div>
-      </div>
-    </section>
-  )}
-
   <DownloadBar entry={entry} />
+  <FaqEnhance />
 </Base>

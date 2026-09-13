@@ -1,8 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
 import SearchBox from '../components/SearchBox.astro';
-import SoftwareCard from '../components/SoftwareCard.astro';
-import { categories, categoryPath } from '../lib/categories';
+import ExplorerWindow from '../components/ExplorerWindow.astro';
+import { categories } from '../lib/categories';
 import { getFeaturedSoftware, getListedSoftware } from '../lib/software';
 import { driverLinks, officialStores, popularQueries, site } from '../data/site';
 
@@ -16,10 +16,10 @@ const counts = Object.fromEntries(
 );
 ---
 
-<Base>
+<Base folder="all">
   <section class="hero">
-    <div class="wrap">
-      <p class="kicker">Software Archive</p>
+    <div class="index-card">
+      <p class="kicker">Software Archive / File 00</p>
       <h1>필요한 프로그램을<br />공식 경로로 받는 자료실</h1>
       <p class="lede">{site.tagline}. 설치 파일은 직접 받지 않고, 제작사 페이지로 안내합니다.</p>
       <SearchBox autofocus />
@@ -32,72 +32,67 @@ const counts = Object.fromEntries(
   </section>
 
   <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>카테고리</h2>
-        <p>자료 {listed.length}개</p>
-      </div>
-      <div class="category-grid">
-        {categories.map((category) => (
-          <a class="category-card" href={categoryPath(category.slug)}>
-            <strong>{category.name}</strong>
-            <span>{category.description} · {counts[category.slug]}개</span>
-          </a>
-        ))}
-      </div>
+    <div class="section-head">
+      <h2>최근 자료</h2>
+      <p>{listed.length} files</p>
     </div>
+    <ExplorerWindow
+      title="자료실"
+      path="마이 다운로드 \\ 최근 파일"
+      current="all"
+      entries={featured}
+      counts={counts}
+      total={listed.length}
+    />
   </section>
 
   <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>최근 자료</h2>
-        <a href="/category/utility/">전체 보기</a>
-      </div>
-      <div class="card-grid">
-        {featured.map((entry) => (
-          <SoftwareCard entry={entry} />
-        ))}
-      </div>
+    <div class="section-head">
+      <h2>공식 다운로드 스토어</h2>
     </div>
-  </section>
-
-  <section class="section">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>공식 다운로드 스토어</h2>
+    <div class="chips" style="margin: 0 0 20px;">
+      {officialStores.map((store) => (
+        <a class="chip" href={store.href} rel="noopener noreferrer" target="_blank">{store.name}</a>
+      ))}
+    </div>
+    <div class="resource-grid">
+      <div class="drawer">
+        <h3>PC 부품 드라이버</h3>
+        <ul>
+          {driverLinks.hardware.map((link) => (
+            <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
+          ))}
+        </ul>
       </div>
-      <div class="chips" style="margin-bottom: 28px;">
-        {officialStores.map((store) => (
-          <a class="chip" href={store.href} rel="noopener noreferrer" target="_blank">{store.name}</a>
-        ))}
+      <div class="drawer">
+        <h3>프린터 공식 드라이버</h3>
+        <ul>
+          {driverLinks.printer.map((link) => (
+            <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
+          ))}
+        </ul>
       </div>
-      <div class="resource-grid">
-        <div class="panel resource-card">
-          <h3>PC 부품 드라이버</h3>
-          <ul>
-            {driverLinks.hardware.map((link) => (
-              <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
-            ))}
-          </ul>
-        </div>
-        <div class="panel resource-card">
-          <h3>프린터 공식 드라이버</h3>
-          <ul>
-            {driverLinks.printer.map((link) => (
-              <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
-            ))}
-          </ul>
-        </div>
-        <div class="panel resource-card">
-          <h3>개발자 자료실</h3>
-          <ul>
-            {driverLinks.developer.map((link) => (
-              <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
-            ))}
-          </ul>
-        </div>
+      <div class="drawer">
+        <h3>개발자 자료실</h3>
+        <ul>
+          {driverLinks.developer.map((link) => (
+            <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
+          ))}
+        </ul>
       </div>
     </div>
   </section>
 </Base>
+
+<script>
+  const postId = new URLSearchParams(window.location.search).get('p');
+  if (postId) {
+    fetch('/shortlinks.json')
+      .then((response) => response.json())
+      .then((map: Record<string, string>) => {
+        const dest = map[postId];
+        if (dest) window.location.replace(dest);
+      })
+      .catch(() => undefined);
+  }
+</script>

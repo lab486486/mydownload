@@ -1,0 +1,55 @@
+---
+import type { SoftwareEntry } from '../lib/software';
+import ExplorerList from './ExplorerList.astro';
+import FolderTree from './FolderTree.astro';
+import SearchBox from './SearchBox.astro';
+
+interface Props {
+  title: string;
+  path: string;
+  stamp?: string;
+  current?: string;
+  entries: SoftwareEntry[];
+  counts?: Record<string, number>;
+  total?: number;
+  showTree?: boolean;
+  showSearch?: boolean;
+  bodyId?: string;
+  emptyText?: string;
+}
+
+const {
+  title,
+  path,
+  stamp,
+  current,
+  entries,
+  counts,
+  total,
+  showTree = true,
+  showSearch = false,
+  bodyId,
+  emptyText,
+} = Astro.props;
+---
+
+<section class="explorer" aria-label={title}>
+  <div class="explorer-titlebar">
+    <span class="explorer-dots" aria-hidden="true">
+      <i></i><i></i><i></i>
+    </span>
+    <strong>{title}</strong>
+    <span class="explorer-stamp">{stamp ?? `${entries.length} FILES`}</span>
+  </div>
+  <div class="explorer-address">
+    <p class="address-path">
+      <span aria-hidden="true">📁</span>
+      {path}
+    </p>
+    {showSearch && <SearchBox compact />}
+  </div>
+  <div class:list={['explorer-body', { 'is-list-only': !showTree }]}>
+    {showTree && <FolderTree current={current} counts={counts} total={total} />}
+    <ExplorerList entries={entries} bodyId={bodyId} emptyText={emptyText} />
+  </div>
+</section>

@@ -1,0 +1,30 @@
+---
+import { categories, categoryPath } from '../lib/categories';
+
+interface Props {
+  current?: string;
+  counts?: Record<string, number>;
+  total?: number;
+}
+
+const { current, counts = {}, total = 0 } = Astro.props;
+---
+
+<aside class="folder-tree" aria-label="폴더">
+  <p class="tree-label">폴더</p>
+  <a class:list={['tree-item', { 'is-current': current === 'all' }]} href="/">
+    <span class="tree-icon" data-tone="cream" aria-hidden="true"></span>
+    <span>자료실</span>
+    <b>{total}</b>
+  </a>
+  {categories.map((category) => (
+    <a
+      class:list={['tree-item', { 'is-current': current === category.slug }]}
+      href={categoryPath(category.slug)}
+    >
+      <span class="tree-icon" data-tone={category.tone} aria-hidden="true"></span>
+      <span>{category.name}</span>
+      <b>{counts[category.slug] ?? 0}</b>
+    </a>
+  ))}
+</aside>

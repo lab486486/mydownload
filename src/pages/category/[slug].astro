@@ -1,8 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
-import SoftwareCard from '../../components/SoftwareCard.astro';
+import ExplorerWindow from '../../components/ExplorerWindow.astro';
 import { categories, getCategory } from '../../lib/categories';
-import { getSoftwareByCategory } from '../../lib/software';
+import { byName, getListedSoftware, getSoftwareByCategory } from '../../lib/software';
 
 export function getStaticPaths() {
   return categories.map((category) => ({ params: { slug: category.slug } }));
@@ -14,28 +14,32 @@ if (!category) {
   throw new Error(`Unknown category: ${slug}`);
 }
 
-const entries = await getSoftwareByCategory(category.slug);
+const listed = await getListedSoftware();
+const entries = byName(await getSoftwareByCategory(category.slug));
+const counts = Object.fromEntries(
+  categories.map((item) => [
+    item.slug,
+    listed.filter((entry) => entry.data.category === item.slug).length,
+  ]),
+);
 ---
 
-<Base title={category.name} description={category.description}>
+<Base title={category.name} description={category.description} folder={category.slug}>
   <section class="hero">
-    <div class="wrap">
-      <p class="breadcrumb"><a href="/">자료실</a> / {category.name}</p>
-      <h1 class="page-title">{category.name}</h1>
-      <p class="lede">{category.description}. {entries.length}개 자료.</p>
-    </div>
+    <p class="breadcrumb"><a href="/">자료실</a> / {category.name}</p>
+    <h1 class="page-title">{category.name}</h1>
+    <p class="lede">{category.description}. {entries.length}개 자료.</p>
   </section>
   <section class="section">
-    <div class="wrap">
-      {entries.length === 0 ? (
-        <div class="empty">이 분류에 아직 자료가 없습니다.</div>
-      ) : (
-        <div class="card-grid">
-          {entries.map((entry) => (
-            <SoftwareCard entry={entry} />
-          ))}
-        </div>
-      )}
-    </div>
+    <ExplorerWindow
+      title={category.name}
+      path={`마이 다운로드 \\ ${category.name}`}
+      current={category.slug}
+      entries={entries}
+      counts={counts}
+      total={listed.length}
+      showSearch
+      emptyText="이 분류에 아직 자료가 없습니다."
+    />
   </section>
 </Base>

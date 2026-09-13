@@ -1,0 +1,30 @@
+---
+import { categories, categoryPath } from '../lib/categories';
+
+interface Props {
+  current?: string;
+  counts?: Record<string, number>;
+  total?: number;
+}
+
+const { current, counts = {}, total = 0 } = Astro.props;
+---
+
+<nav class="folder-tabs" aria-label="자료 분류">
+  <a class:list={['folder-tab', { 'is-current': current === 'all' }]} data-tone="cream" href="/">
+    <em>00</em>
+    <span>전체</span>
+    {total > 0 && <b>{total}</b>}
+  </a>
+  {categories.map((category) => (
+    <a
+      class:list={['folder-tab', { 'is-current': current === category.slug }]}
+      data-tone={category.tone}
+      href={categoryPath(category.slug)}
+    >
+      <em>{category.code}</em>
+      <span>{category.name}</span>
+      {counts[category.slug] != null && <b>{counts[category.slug]}</b>}
+    </a>
+  ))}
+</nav>

@@ -9,7 +9,7 @@ export default defineConfig({
   integrations: [
     downloadAdminApi(),
     sitemap({
-      filter: (page) => !page.includes('/admin'),
+      filter: (page) => !page.includes('/admin') && !page.includes('/p/'),
     }),
   ],
 });

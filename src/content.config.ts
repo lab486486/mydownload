@@ -19,6 +19,14 @@ const software = defineCollection({
     developer: z.string().optional(),
     license: z.string().optional(),
     rating: z.number().optional(),
+    specs: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.string(),
+        }),
+      )
+      .optional(),
     downloads: z
       .array(
         z.object({

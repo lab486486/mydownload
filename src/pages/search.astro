@@ -1,20 +1,38 @@
 ---
 import Base from '../layouts/Base.astro';
 import SearchBox from '../components/SearchBox.astro';
+import ExplorerWindow from '../components/ExplorerWindow.astro';
+import { categories } from '../lib/categories';
+import { getListedSoftware } from '../lib/software';
+
+const listed = await getListedSoftware();
+const counts = Object.fromEntries(
+  categories.map((category) => [
+    category.slug,
+    listed.filter((entry) => entry.data.category === category.slug).length,
+  ]),
+);
 ---
 
-<Base title="자료 검색" description="마이 다운로드 자료실에서 프로그램을 찾습니다.">
+<Base title="자료 검색" description="마이 다운로드 자료실에서 프로그램을 찾습니다." folder="all">
   <section class="hero">
-    <div class="wrap">
-      <p class="kicker">Search</p>
-      <h1 class="page-title">자료 검색</h1>
-      <SearchBox />
-    </div>
+    <p class="kicker">Search / Find File</p>
+    <h1 class="page-title">자료 검색</h1>
+    <SearchBox />
   </section>
   <section class="section">
-    <div class="wrap">
-      <p id="search-status" class="muted">검색어를 입력하면 이름, 설명, 태그에서 찾습니다.</p>
-      <div id="search-results" class="card-grid" style="margin-top: 20px;"></div>
+    <p id="search-status" class="muted">검색어를 입력하면 이름, 설명, 태그에서 찾습니다.</p>
+    <div style="margin-top: 16px;">
+      <ExplorerWindow
+        title="검색 결과"
+        path="마이 다운로드 \\ 검색"
+        current="all"
+        entries={[]}
+        counts={counts}
+        total={listed.length}
+        bodyId="search-results"
+        stamp="QUERY"
+      />
     </div>
   </section>
 </Base>
@@ -28,7 +46,9 @@ import SearchBox from '../components/SearchBox.astro';
     excerpt: string;
     href: string;
     category: string;
-    os: string[];
+    os: string;
+    developer: string;
+    date: string;
     icon?: string;
     tags: string[];
   };
@@ -40,21 +60,19 @@ import SearchBox from '../components/SearchBox.astro';
   const input = document.querySelector<HTMLInputElement>('#q');
   if (input && query) input.value = query;
 
-  function card(item: Item) {
+  function row(item: Item) {
     const icon = item.icon
-      ? `<img class="icon" src="${item.icon}" alt="" width="56" height="56" />`
-      : `<span class="icon fallback">${item.name.slice(0, 1)}</span>`;
-    const pills = [item.category, ...item.os.slice(0, 2)]
-      .map((label) => `<span class="pill">${label}</span>`)
-      .join('');
-    return `<a class="software-card" href="${item.href}">
-      ${icon}
-      <div>
-        <h3>${item.name}</h3>
-        <p>${item.excerpt || item.title}</p>
-        <div class="meta">${pills}</div>
-      </div>
-    </a>`;
+      ? `<img class="file-icon" src="${item.icon}" alt="" width="20" height="20" />`
+      : `<span class="file-icon fallback">${item.name.slice(0, 1)}</span>`;
+    return `<tr>
+      <td class="col-name">
+        <a class="file-link" href="${item.href}">${icon}<span class="file-name">${item.name}</span></a>
+      </td>
+      <td class="col-kind">${item.category}</td>
+      <td class="col-os">${item.os}</td>
+      <td class="col-dev">${item.developer}</td>
+      <td class="col-date">${item.date}</td>
+    </tr>`;
   }
 
   const index = await fetch('/search-index.json').then((response) => response.json()) as Item[];
@@ -68,6 +86,6 @@ import SearchBox from '../components/SearchBox.astro';
     status.textContent = matches.length
       ? `"${query}" 검색 결과 ${matches.length}개`
       : `"${query}"에 해당하는 자료가 없습니다.`;
-    results.innerHTML = matches.map(card).join('');
+    results.innerHTML = matches.map(row).join('');
   }
 </script>

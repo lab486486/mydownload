@@ -1,0 +1,132 @@
+<script>
+  function isFaqHeading(node: Element) {
+    return /자주\s*.*질문|FAQ/i.test(node.textContent ?? '');
+  }
+
+  function headingLevel(node: Element) {
+    const match = node.tagName.match(/^H([1-6])$/);
+    return match ? Number(match[1]) : 99;
+  }
+
+  function nextUntilHeading(start: Element) {
+    const nodes: Element[] = [];
+    const level = headingLevel(start);
+    let current = start.nextElementSibling;
+    while (current) {
+      if (headingLevel(current) <= level) break;
+      nodes.push(current);
+      current = current.nextElementSibling;
+    }
+    return nodes;
+  }
+
+  function textOf(node: Element) {
+    return (node.textContent ?? '').replace(/\s+/g, ' ').trim();
+  }
+
+  function parseRunOn(text: string) {
+    const chunks = text.split(/(?=Q\s*\d+\.)/).map((item) => item.trim()).filter(Boolean);
+    return chunks
+      .map((chunk) => {
+        const match = chunk.match(/^Q\s*\d+\.\s*(.+?)(?:\?|？)?\s*▼?\s*([\s\S]+)$/);
+        if (!match) return null;
+        return { q: `${match[1].trim()}?`, a: match[2].replace(/^▼\s*/, '').trim() };
+      })
+      .filter((item): item is { q: string; a: string } => Boolean(item?.q && item?.a));
+  }
+
+  function isQuestionText(raw: string) {
+    return /^(?:Q\s*\d+\.|Q\.|Q:|질문\s*:|\d+\.)\s+/.test(raw);
+  }
+
+  function collectPairs(nodes: Element[]) {
+    const pairs: { q: string; a: string }[] = [];
+    const used: Element[] = [];
+    let pending: string | null = null;
+    let answer = '';
+
+    const flush = () => {
+      if (pending && answer) pairs.push({ q: pending, a: answer.trim() });
+      pending = null;
+      answer = '';
+    };
+
+    for (const node of nodes) {
+      if (node.matches('details')) continue;
+      const heading = node.matches('h3, h4, h5');
+      const raw = textOf(node);
+      if (!raw) continue;
+
+      if (heading && !isQuestionText(raw)) {
+        flush();
+        break;
+      }
+
+      const runOn = parseRunOn(raw);
+      if (runOn.length > 1 || (runOn.length === 1 && /Q\s*\d+\./.test(raw) && raw.includes('▼'))) {
+        flush();
+        pairs.push(...runOn);
+        used.push(node);
+        continue;
+      }
+
+      const sameLine = raw.match(/^(?:Q\s*\d+\.|Q\.|Q:|질문\s*:)\s*(.+?(?:\?|？))\s+(.+)$/i);
+      if (sameLine) {
+        flush();
+        pairs.push({ q: sameLine[1].trim(), a: sameLine[2].replace(/^(?:A\.|A:|답변\s*:)\s*/i, '').trim() });
+        used.push(node);
+        continue;
+      }
+
+      const questionMatch = raw.match(/^(?:Q\s*\d+\.|Q\.|Q:|질문\s*:|\d+\.)\s*(.+)$/i);
+      if (heading || questionMatch) {
+        flush();
+        pending = (questionMatch?.[1] ?? raw).replace(/^[?？]\s*/, '').trim();
+        used.push(node);
+        continue;
+      }
+
+      if (pending) {
+        const chunk = raw.replace(/^(?:A\.|A:|답변\s*:)\s*/i, '');
+        answer = answer ? `${answer} ${chunk}` : chunk;
+        used.push(node);
+      }
+    }
+    flush();
+    return { pairs: pairs.filter((item) => item.q && item.a), used };
+  }
+
+  function renderAccordion(heading: Element, pairs: { q: string; a: string }[], remove: Element[]) {
+    const wrap = document.createElement('div');
+    wrap.className = 'faq-list';
+    wrap.innerHTML = pairs
+      .map(
+        (item) =>
+          `<details class="faq-item"><summary>${item.q}</summary><p>${item.a}</p></details>`,
+      )
+      .join('');
+    heading.insertAdjacentElement('afterend', wrap);
+    for (const node of remove) node.remove();
+  }
+
+  function enhance() {
+    const prose = document.querySelector('.prose');
+    if (!prose) return;
+
+    for (const heading of [...prose.querySelectorAll('h2, h3')]) {
+      if (!isFaqHeading(heading)) continue;
+      const block = nextUntilHeading(heading);
+      if (block.some((node) => node.matches('details, .faq-list') || node.querySelector('details'))) {
+        continue;
+      }
+      const { pairs, used } = collectPairs(block);
+      if (pairs.length > 0) renderAccordion(heading, pairs, used);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', enhance, { once: true });
+  } else {
+    enhance();
+  }
+</script>

@@ -1,0 +1,30 @@
+---
+import { starLabel, type SoftwareEntry } from '../lib/software';
+
+interface Props {
+  entry: SoftwareEntry;
+}
+
+const { data } = Astro.props.entry;
+---
+
+{(data.rating != null || data.downloads.length > 0) && (
+  <section class="download-section" aria-labelledby="download-section-title">
+    <h2 id="download-section-title">다운로드</h2>
+    {data.rating != null && (
+      <p class="article-rating">
+        <span class="stars" aria-hidden="true">{starLabel(data.rating)}</span>
+        <strong>평점 {data.rating.toFixed(1)} / 5.0</strong>
+      </p>
+    )}
+    {data.downloads.length > 0 && (
+      <div class="article-downloads">
+        {data.downloads.map((item) => (
+          <a href={item.url} rel="noopener noreferrer" target="_blank">
+            {item.label}
+          </a>
+        ))}
+      </div>
+    )}
+  </section>
+)}
