@@ -1,4 +1,5 @@
 ---
+import { listIcon } from '../lib/icon';
 import {
   categoryLabel,
   entryPath,
@@ -33,7 +34,15 @@ const { entries, bodyId, emptyText = '이 폴더가 비어 있습니다.' } = As
           <td class="col-name">
             <a class="file-link" href={entryPath(entry)}>
               {entry.data.icon ? (
-                <img class="file-icon" src={entry.data.icon} alt="" width="20" height="20" />
+                <img
+                  class="file-icon"
+                  src={listIcon(entry.data.icon)}
+                  alt=""
+                  width="20"
+                  height="20"
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <span class="file-icon fallback">{entry.data.name.slice(0, 1)}</span>
               )}

@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { listIcon } from '../lib/icon';
 import { categoryLabel, entryPath, fileDate, getListedSoftware, osList } from '../lib/software';
 
 export const GET: APIRoute = async () => {
@@ -12,7 +13,7 @@ export const GET: APIRoute = async () => {
     os: osList(entry),
     developer: entry.data.developer ?? '—',
     date: fileDate(entry),
-    icon: entry.data.icon,
+    icon: listIcon(entry.data.icon),
     tags: entry.data.tags,
   }));
 

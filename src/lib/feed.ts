@@ -30,6 +30,7 @@ export async function publicPages() {
     { loc: absUrl('/search/'), changefreq: 'weekly', priority: '0.4' },
     { loc: absUrl('/privacy/'), changefreq: 'yearly', priority: '0.2' },
     { loc: absUrl('/rss'), changefreq: 'daily', priority: '0.3' },
+    { loc: absUrl('/llms.txt'), changefreq: 'weekly', priority: '0.2' },
     ...categories.map((category) => ({
       loc: absUrl(categoryPath(category.slug)),
       changefreq: 'weekly',

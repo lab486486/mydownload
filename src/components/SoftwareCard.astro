@@ -1,4 +1,5 @@
 ---
+import { listIcon } from '../lib/icon';
 import { categoryLabel, entryPath, osLabel, type SoftwareEntry } from '../lib/software';
 
 interface Props {
@@ -12,7 +13,7 @@ const initial = entry.data.name.slice(0, 1);
 
 <a class="software-card" href={href}>
   {entry.data.icon ? (
-    <img class="icon" src={entry.data.icon} alt="" width="56" height="56" />
+    <img class="icon" src={listIcon(entry.data.icon)} alt="" width="56" height="56" loading="lazy" decoding="async" />
   ) : (
     <span class="icon fallback">{initial}</span>
   )}

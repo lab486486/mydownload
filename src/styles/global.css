@@ -17,8 +17,8 @@
   --shadow: 0 1px 0 rgba(255, 248, 230, 0.45) inset, 0 14px 32px rgba(60, 40, 20, 0.12);
   --radius: 10px;
   --nameplate: 58px;
-  --serif: 'Noto Serif KR', Pretendard, 'Apple SD Gothic Neo', serif;
-  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --serif: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --tab-cream: #f3e6c4;
   --tab-manila: #e8c96a;
   --tab-sage: #c5d4a8;
@@ -41,9 +41,9 @@ body {
   margin: 0;
   color: var(--ink);
   font-family:
-    Pretendard,
     'Apple SD Gothic Neo',
     'Noto Sans KR',
+    'Malgun Gothic',
     sans-serif;
   font-size: 16px;
   line-height: 1.65;

@@ -62,7 +62,7 @@ const counts = Object.fromEntries(
 
   function row(item: Item) {
     const icon = item.icon
-      ? `<img class="file-icon" src="${item.icon}" alt="" width="20" height="20" />`
+      ? `<img class="file-icon" src="${item.icon}" alt="" width="20" height="20" loading="lazy" decoding="async" />`
       : `<span class="file-icon fallback">${item.name.slice(0, 1)}</span>`;
     return `<tr>
       <td class="col-name">

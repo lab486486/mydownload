@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "thumbs": "python3 scripts/make_thumbs.py",
     "preview": "astro preview",
     "astro": "astro",
     "migrate": "node scripts/migrate.mjs",

@@ -1,5 +1,6 @@
 ---
 import { categoryPath } from '../lib/categories';
+import { listIcon } from '../lib/icon';
 import { entryPath, type SoftwareEntry } from '../lib/software';
 
 interface Props {
@@ -23,7 +24,15 @@ const { title, slug, entries } = Astro.props;
           <li>
             <a href={entryPath(item)}>
               {item.data.icon ? (
-                <img class="file-icon" src={item.data.icon} alt="" width="20" height="20" />
+                <img
+                  class="file-icon"
+                  src={listIcon(item.data.icon)}
+                  alt=""
+                  width="20"
+                  height="20"
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <span class="file-icon fallback">{item.data.name.slice(0, 1)}</span>
               )}
