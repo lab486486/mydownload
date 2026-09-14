@@ -843,6 +843,10 @@ textarea {
   padding: 28px 28px 64px;
 }
 
+.prose {
+  word-break: keep-all;
+}
+
 .prose h2,
 .prose h3 {
   font-family: var(--serif);
