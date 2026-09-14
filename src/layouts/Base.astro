@@ -3,8 +3,6 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import FolderTabs from '../components/FolderTabs.astro';
-import { categories } from '../lib/categories';
-import { getListedSoftware } from '../lib/software';
 import { site } from '../data/site';
 
 interface Props {
@@ -27,13 +25,6 @@ const {
 
 const pageTitle = title ? `${title} - ${site.name}` : `${site.name} 자료실`;
 const canonicalUrl = new URL(canonical ?? Astro.url.pathname, site.url).href;
-const listed = noindex ? [] : await getListedSoftware();
-const counts = Object.fromEntries(
-  categories.map((category) => [
-    category.slug,
-    listed.filter((entry) => entry.data.category === category.slug).length,
-  ]),
-);
 ---
 
 <!doctype html>
@@ -59,7 +50,7 @@ const counts = Object.fromEntries(
       <div class="wrap cabinet">
         {!noindex && (
           <div class="tab-rail">
-            <FolderTabs current={folder} counts={counts} total={listed.length} />
+            <FolderTabs current={folder} />
           </div>
         )}
         <div class="cabinet-well">
