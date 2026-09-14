@@ -1488,7 +1488,7 @@ textarea {
   .entry-layout,
   .footer-inner,
   .explorer-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     display: grid;
   }
 
@@ -1507,6 +1507,20 @@ textarea {
   .admin-page {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .entry-layout {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .entry-article,
+  .related-sidebar,
+  .prose {
+    min-width: 0;
+    max-width: 100%;
   }
 
   .hero h1,
