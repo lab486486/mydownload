@@ -1509,6 +1509,13 @@ textarea {
     padding-right: 16px;
   }
 
+  .hero h1,
+  .page-title,
+  .lede {
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+
   /* Mobile: keep category tabs, drop the brown cabinet frame below them */
   .desk {
     padding: 0 0 32px;
