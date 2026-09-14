@@ -1555,14 +1555,47 @@ textarea {
 
   .spec-cover {
     border-right: 0;
-    border-bottom: 1px solid var(--line);
-    padding: 20px 16px;
+    border-bottom: 1px solid var(--line-strong);
+    padding: 14px 12px;
   }
 
   .spec-cover img,
   .spec-cover-fallback {
-    width: 120px;
-    height: 120px;
+    width: 88px;
+    height: 88px;
+  }
+
+  /* Namuwiki-style 2-col key/value rows on mobile */
+  .spec-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  .spec-table th,
+  .spec-table td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .spec-table th {
+    width: 34%;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--accent-soft);
+    word-break: keep-all;
+    overflow-wrap: normal;
+  }
+
+  .spec-table td {
+    width: auto;
+    text-align: left;
+    background: #fffdf6;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
   }
 
   .download-bar {
@@ -1594,13 +1627,8 @@ textarea {
     align-items: stretch;
   }
 
-  .pros-cons,
-  .spec-table,
-  .spec-table th {
-    width: 100%;
-  }
-
   .pros-cons {
+    width: 100%;
     grid-template-columns: 1fr;
   }
 
