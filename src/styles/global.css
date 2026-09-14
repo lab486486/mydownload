@@ -1482,21 +1482,37 @@ textarea {
     padding-right: 16px;
   }
 
-  .cabinet-well {
-    border-radius: 0 10px 10px 10px;
+  /* Mobile: keep category tabs, drop the brown cabinet frame below them */
+  .desk {
+    padding: 0 0 32px;
   }
 
   .wrap {
     width: min(1180px, calc(100% - 16px));
   }
 
+  .wrap.cabinet {
+    width: 100%;
+  }
+
   .cabinet {
-    padding-left: 10px;
-    padding-right: 10px;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
     min-width: 0;
   }
 
+  .tab-rail {
+    background: linear-gradient(180deg, #6e5442 0%, #4e3b2e 100%);
+    padding: 10px 8px 0;
+  }
+
   .cabinet-well {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--paper);
     min-width: 0;
     overflow-x: hidden;
   }
