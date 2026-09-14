@@ -52,6 +52,15 @@ export function osLabel(os: string) {
   return labels[os] ?? os;
 }
 
+/** Prefer human labels; fall back when crawled data used a raw URL as the label. */
+export function downloadLabel(item: { label?: string; url?: string; os?: string }) {
+  const label = (item.label ?? '').trim();
+  if (label && !/^https?:\/\//i.test(label)) return label;
+
+  if (item.os) return `${osLabel(item.os)} 다운로드`;
+  return '공식 다운로드';
+}
+
 export function osList(entry: SoftwareEntry) {
   return entry.data.os.map(osLabel).join(', ') || '—';
 }

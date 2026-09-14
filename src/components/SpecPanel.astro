@@ -1,5 +1,5 @@
 ---
-import type { SoftwareEntry } from '../lib/software';
+import { downloadLabel, type SoftwareEntry } from '../lib/software';
 
 interface Props {
   entry: SoftwareEntry;
@@ -20,7 +20,7 @@ const { data } = Astro.props.entry;
     <div class="download-list">
       {data.downloads.map((item) => (
         <a href={item.url} rel="noopener noreferrer" target="_blank">
-          {item.label}
+          {downloadLabel(item)}
         </a>
       ))}
     </div>
