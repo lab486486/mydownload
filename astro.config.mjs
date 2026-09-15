@@ -6,6 +6,10 @@ import { downloadAdminApi } from './download-admin-api.mjs';
 export default defineConfig({
   site: 'https://mydownload.co.kr',
   trailingSlash: 'always',
+  compressHTML: true,
+  build: {
+    inlineStylesheets: 'always',
+  },
   integrations: [
     downloadAdminApi(),
     sitemap({

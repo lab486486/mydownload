@@ -17,7 +17,7 @@
   --shadow: 0 1px 0 rgba(255, 248, 230, 0.45) inset, 0 14px 32px rgba(60, 40, 20, 0.12);
   --radius: 10px;
   --nameplate: 58px;
-  --serif: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  --serif: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
   --tab-cream: #f3e6c4;
   --tab-manila: #e8c96a;
@@ -44,21 +44,23 @@ html {
 body {
   margin: 0;
   color: var(--ink);
-  font-family:
-    'Apple SD Gothic Neo',
-    'Noto Sans KR',
-    'Malgun Gothic',
-    sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 16px;
   line-height: 1.65;
   letter-spacing: -0.01em;
-  background:
-    radial-gradient(rgba(90, 60, 20, 0.05) 0.7px, transparent 0.8px),
-    linear-gradient(180deg, #d2be96 0%, var(--desk) 180px, var(--desk-deep) 100%);
-  background-size:
-    3px 3px,
-    100% 100%;
+  background: linear-gradient(180deg, #d2be96 0%, var(--desk) 180px, var(--desk-deep) 100%);
   min-height: 100vh;
+}
+
+@media (min-width: 901px) {
+  body {
+    background:
+      radial-gradient(rgba(90, 60, 20, 0.05) 0.7px, transparent 0.8px),
+      linear-gradient(180deg, #d2be96 0%, var(--desk) 180px, var(--desk-deep) 100%);
+    background-size:
+      3px 3px,
+      100% 100%;
+  }
 }
 
 a {
@@ -205,6 +207,7 @@ textarea {
   align-items: center;
   justify-content: center;
   min-width: 0;
+  min-height: 44px;
   flex: 1 1 0;
   padding: 10px 12px 12px;
   border: 1px solid rgba(42, 34, 24, 0.28);
@@ -282,6 +285,7 @@ textarea {
 .section {
   padding-top: 12px;
   padding-bottom: 28px;
+  overflow-anchor: none;
 }
 
 .kicker,
@@ -411,7 +415,7 @@ textarea {
 
 .search-form.is-compact input,
 .search-form.is-compact button {
-  height: 34px;
+  height: 44px;
   font-size: 13px;
 }
 
@@ -423,7 +427,10 @@ textarea {
 }
 
 .chip {
-  padding: 5px 11px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 5px 14px;
   border: 1px dashed var(--line-strong);
   border-radius: 999px;
   background: rgba(255, 253, 246, 0.7);
@@ -464,12 +471,14 @@ textarea {
   background: #fffdf6;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   overflow: hidden;
+  contain: layout;
 }
 
 .explorer-titlebar {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 36px;
   padding: 8px 12px;
   background: linear-gradient(180deg, #8a6a4e, #6d5340);
   color: #f6edd8;
@@ -502,6 +511,8 @@ textarea {
 
 .explorer-stamp {
   margin-left: auto;
+  min-width: 8.5em;
+  text-align: right;
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.1em;
@@ -520,9 +531,22 @@ textarea {
 
 .address-path {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--mono);
   font-size: 12px;
   color: var(--muted);
+}
+
+.path-folder {
+  display: inline-block;
+  flex: none;
+  width: 14px;
+  height: 11px;
+  border-radius: 1px 2px 1px 1px;
+  background: var(--tab-manila);
+  box-shadow: 0 -3px 0 -1px color-mix(in srgb, var(--tab-manila) 80%, #000 10%);
 }
 
 .explorer-body {
@@ -659,6 +683,7 @@ textarea {
 .file-icon {
   width: 20px;
   height: 20px;
+  aspect-ratio: 1;
   border-radius: 4px;
   object-fit: cover;
   background: var(--accent-soft);
@@ -823,6 +848,25 @@ textarea {
 
 .resource-card a:hover,
 .drawer a:hover {
+  border-bottom-color: var(--line-strong);
+}
+
+.link-stack {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.link-stack a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 6px 0;
+  color: var(--ink);
+  border-bottom: 1px solid transparent;
+}
+
+.link-stack a:hover {
   border-bottom-color: var(--line-strong);
 }
 
@@ -1044,14 +1088,25 @@ textarea {
   display: none;
 }
 
-.ad-inarticle {
+.ad-inarticle,
+.ad-home {
   margin: 0 0 20px;
 }
 
+.ad-home {
+  padding: 8px 28px 28px;
+}
+
 .ad-slot {
-  min-height: 90px;
+  min-height: 280px;
   background: #f3e8cf;
   border: 1px dashed #d2b57a;
+  overflow: hidden;
+  contain: layout;
+}
+
+.google-auto-placed {
+  display: none !important;
 }
 
 .ad-sidebar {
@@ -1061,7 +1116,7 @@ textarea {
 }
 
 .ad-sidebar .ad-slot {
-  min-height: 280px;
+  min-height: 600px;
 }
 
 .related-sidebar {
@@ -1113,6 +1168,7 @@ textarea {
   align-items: center;
   gap: 8px;
   min-width: 0;
+  min-height: 44px;
   padding: 8px 12px;
   color: var(--ink);
 }
@@ -1522,7 +1578,8 @@ textarea {
   .hero,
   .section,
   .entry-layout,
-  .admin-page {
+  .admin-page,
+  .ad-home {
     padding-left: 16px;
     padding-right: 16px;
   }

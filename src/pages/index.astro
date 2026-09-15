@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import SearchBox from '../components/SearchBox.astro';
 import ExplorerWindow from '../components/ExplorerWindow.astro';
+import AdSlot from '../components/AdSlot.astro';
 import { categories } from '../lib/categories';
 import { getFeaturedSoftware, getListedSoftware } from '../lib/software';
 import { driverLinks, officialStores, popularQueries } from '../data/site';
@@ -23,7 +24,7 @@ const counts = Object.fromEntries(
       <p class="kicker">Software Archive / File 00</p>
       <h1>안전하고 빠르게<br />마이다운로드 자료실</h1>
       <p class="lede">공식 홈페이지의 다운로드 링크를 쉽고 편리하게 알려드립니다.</p>
-      <SearchBox autofocus />
+      <SearchBox />
       <div class="chips">
         {popularQueries.map((item) => (
           <a class="chip" href={`/search/?q=${encodeURIComponent(item.query)}`}>{item.label}</a>
@@ -59,38 +60,42 @@ const counts = Object.fromEntries(
     <div class="resource-grid">
       <div class="drawer">
         <h3>PC 부품 드라이버</h3>
-        <ul>
+        <div class="link-stack">
           {driverLinks.hardware.map((link) => (
-            <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
+            <a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a>
           ))}
-        </ul>
+        </div>
       </div>
       <div class="drawer">
         <h3>프린터 공식 드라이버</h3>
-        <ul>
+        <div class="link-stack">
           {driverLinks.printer.map((link) => (
-            <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
+            <a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a>
           ))}
-        </ul>
+        </div>
       </div>
       <div class="drawer">
         <h3>개발자 자료실</h3>
-        <ul>
+        <div class="link-stack">
           {driverLinks.developer.map((link) => (
-            <li><a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a></li>
+            <a href={link.href} rel="noopener noreferrer" target="_blank">{link.name}</a>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   </section>
+
+  <div class="ad-home" aria-label="광고">
+    <AdSlot adSlot="9297966510" label="홈 하단" />
+  </div>
 </Base>
 
-<script>
+<script is:inline>
   const postId = new URLSearchParams(window.location.search).get('p');
   if (postId) {
     fetch('/shortlinks.json')
       .then((response) => response.json())
-      .then((map: Record<string, string>) => {
+      .then((map) => {
         const dest = map[postId];
         if (dest) window.location.replace(dest);
       })
