@@ -60,16 +60,9 @@ const canonicalUrl = new URL(canonical ?? Astro.url.pathname, site.url).href;
     </main>
     <Footer />
     {!noindex && (
-      <script is:inline>
-        window.adsbygoogle = window.adsbygoogle || [];
-        window.addEventListener('load', () => {
-          const script = document.createElement('script');
-          script.async = true;
-          script.src =
-            'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8094444885520451';
-          script.crossOrigin = 'anonymous';
-          document.body.appendChild(script);
-        });
+      <script>
+        import { initAdsGuard } from '../lib/ads-guard';
+        initAdsGuard();
       </script>
     )}
   </body>
