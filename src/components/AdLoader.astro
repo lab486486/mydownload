@@ -1,0 +1,145 @@
+---
+/** Loads AdSense only when the local click-guard is not blocking. */
+---
+
+<script is:inline>
+  (function () {
+    var STORAGE_KEY = 'mydownload.adsClickGuard';
+    var MAX_CLICKS = 3;
+    var WINDOW_MS = 24 * 60 * 60 * 1000;
+    var DEBOUNCE_MS = 1500;
+    var CLIENT = 'ca-pub-8094444885520451';
+
+    function readClicks() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        var data = JSON.parse(raw);
+        var now = Date.now();
+        var clicks = Array.isArray(data.clicks)
+          ? data.clicks.filter(function (time) {
+              return typeof time === 'number' && now - time < WINDOW_MS;
+            })
+          : [];
+        if (JSON.stringify(clicks) !== JSON.stringify(data.clicks || [])) {
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ clicks: clicks }));
+          } catch (err) {}
+        }
+        return clicks;
+      } catch (err) {
+        return [];
+      }
+    }
+
+    function isBlocked() {
+      return readClicks().length >= MAX_CLICKS;
+    }
+
+    function recordClick() {
+      var clicks = readClicks();
+      clicks.push(Date.now());
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ clicks: clicks }));
+      } catch (err) {}
+    }
+
+    function markGuard(state) {
+      document.documentElement.setAttribute('data-ads-guard', state);
+    }
+
+    function isAdTarget(node) {
+      if (!(node instanceof Element)) return false;
+      return Boolean(node.closest('.ad-host, .ad-slot, .adsbygoogle'));
+    }
+
+    function mountAds() {
+      var hosts = document.querySelectorAll('.ad-host');
+      for (var i = 0; i < hosts.length; i += 1) {
+        var host = hosts[i];
+        if (host.querySelector('.adsbygoogle')) continue;
+        var slot = host.getAttribute('data-ad-slot');
+        if (!slot) continue;
+        var label = host.getAttribute('data-ad-label') || '';
+        var minHeight = host.getAttribute('data-ad-min-height') || '280';
+        var wrap = document.createElement('div');
+        wrap.className = 'ad-slot';
+        wrap.setAttribute('data-label', label);
+        wrap.style.minHeight = minHeight + 'px';
+        var ins = document.createElement('ins');
+        ins.className = 'adsbygoogle';
+        ins.style.display = 'block';
+        ins.style.minHeight = minHeight + 'px';
+        ins.setAttribute('data-ad-client', CLIENT);
+        ins.setAttribute('data-ad-slot', slot);
+        ins.setAttribute('data-ad-format', 'auto');
+        ins.setAttribute('data-full-width-responsive', 'false');
+        wrap.appendChild(ins);
+        host.appendChild(wrap);
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      }
+    }
+
+    function loadScript() {
+      if (document.getElementById('adsbygoogle-js')) return;
+      var script = document.createElement('script');
+      script.id = 'adsbygoogle-js';
+      script.async = true;
+      script.src =
+        'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + CLIENT;
+      script.crossOrigin = 'anonymous';
+      document.body.appendChild(script);
+    }
+
+    function watchEstimatedClicks() {
+      var armed = false;
+      var lastCountAt = 0;
+      var arm = function (event) {
+        if (isAdTarget(event.target)) armed = true;
+      };
+      document.addEventListener('pointerenter', arm, true);
+      document.addEventListener('mouseover', arm, true);
+      document.addEventListener('touchstart', arm, { capture: true, passive: true });
+      document.addEventListener('focusin', arm, true);
+      window.addEventListener('blur', function () {
+        if (!armed) return;
+        var now = Date.now();
+        if (now - lastCountAt < DEBOUNCE_MS) return;
+        lastCountAt = now;
+        armed = false;
+        recordClick();
+      });
+    }
+
+    if (isBlocked()) {
+      markGuard('blocked');
+      return;
+    }
+
+    markGuard('ready');
+    watchEstimatedClicks();
+
+    var start = function () {
+      if (isBlocked()) {
+        markGuard('blocked');
+        return;
+      }
+      mountAds();
+      var load = function () {
+        if (isBlocked()) {
+          markGuard('blocked');
+          return;
+        }
+        loadScript();
+      };
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(load, { timeout: 2500 });
+      } else {
+        setTimeout(load, 1500);
+      }
+    };
+
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
+  })();
+</script>

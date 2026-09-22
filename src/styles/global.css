@@ -1097,6 +1097,13 @@ textarea {
   padding: 8px 28px 28px;
 }
 
+.ad-host:empty,
+.ad-inarticle:has(.ad-host:empty),
+.ad-home:has(.ad-host:empty),
+.ad-sidebar:has(.ad-host:empty) {
+  display: none;
+}
+
 .ad-slot {
   min-height: 280px;
   background: #f3e8cf;
