@@ -17,7 +17,7 @@ const initial = entry.data.name.slice(0, 1);
     <div class="spec-board">
       <div class="spec-cover">
         {cover ? (
-          <img src={cover} alt="" width="160" height="160" />
+            <img src={cover} alt="" width="136" height="136" decoding="async" />
         ) : (
           <span class="spec-cover-fallback">{initial}</span>
         )}
