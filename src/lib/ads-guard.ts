@@ -50,6 +50,7 @@ function recordClick() {
   if (!store.startedAt) store.startedAt = now;
   store.count += 1;
   writeStore(store);
+  if (store.count >= CLICK_LIMIT) unloadAds();
 }
 
 function hosts(): HTMLElement[] {
@@ -92,6 +93,55 @@ function loadAdScript() {
   script.src = SCRIPT_SRC;
   script.crossOrigin = 'anonymous';
   document.body.appendChild(script);
+}
+
+function isAdFrame(iframe: HTMLIFrameElement) {
+  const id = iframe.id;
+  const name = iframe.name;
+  const src = iframe.getAttribute('src') || iframe.src || '';
+  return (
+    id.startsWith('aswift_') ||
+    id.startsWith('google_ads_iframe') ||
+    name.startsWith('aswift_') ||
+    src.includes('googlesyndication') ||
+    src.includes('doubleclick.net') ||
+    src.includes('googleads')
+  );
+}
+
+function hasAdDom() {
+  return Boolean(
+    document.querySelector('.adsbygoogle') ||
+      document.querySelector('.google-auto-placed') ||
+      [...document.querySelectorAll('iframe')].some((iframe) => isAdFrame(iframe)),
+  );
+}
+
+function unloadAds() {
+  for (const host of hosts()) {
+    host.replaceChildren();
+    host.classList.remove('ad-slot');
+    delete host.dataset.label;
+  }
+
+  document.querySelectorAll('.adsbygoogle, .google-auto-placed').forEach((node) => node.remove());
+  document.querySelectorAll('iframe').forEach((iframe) => {
+    if (isAdFrame(iframe)) iframe.remove();
+  });
+  document.querySelectorAll('script[src*="adsbygoogle.js"]').forEach((node) => node.remove());
+
+  watchForReinjection();
+}
+
+let reinjectionObserver: MutationObserver | null = null;
+
+function watchForReinjection() {
+  if (reinjectionObserver) return;
+
+  reinjectionObserver = new MutationObserver(() => {
+    if (isBlocked() && hasAdDom()) unloadAds();
+  });
+  reinjectionObserver.observe(document.documentElement, { childList: true, subtree: true });
 }
 
 function bindClickHeuristic() {
@@ -147,6 +197,10 @@ function bindClickHeuristic() {
   window.addEventListener('blur', onLeavePage);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) onLeavePage();
+    else if (isBlocked()) unloadAds();
+  });
+  window.addEventListener('focus', () => {
+    if (isBlocked()) unloadAds();
   });
 }
 
