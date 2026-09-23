@@ -1,5 +1,5 @@
 (() => {
-  const STORAGE_KEY = 'md_ads_ivt_v1';
+  const STORAGE_KEY = 'md_ads_ivt_v2';
   const CLICK_LIMIT = 3;
   const WINDOW_MS = 24 * 60 * 60 * 1000;
   const BLUR_DEBOUNCE_MS = 1200;
@@ -11,6 +11,8 @@
   let armed = false;
   let armTimer = 0;
   let lastRecordedAt = 0;
+  let ignoreLeave = false;
+  let ignoreTimer = 0;
   let reinjectionObserver = null;
   let heuristicBound = false;
 
@@ -152,11 +154,44 @@
     }, STICKY_ARM_MS);
   }
 
+  function siteLinkFrom(node) {
+    if (!(node instanceof Element)) return null;
+    const link = node.closest('a[href]');
+    if (!link || isAdElement(link)) return null;
+
+    try {
+      const url = new URL(link.href, location.href);
+      if (url.origin !== location.origin) return null;
+    } catch {
+      return null;
+    }
+
+    return link;
+  }
+
+  function leavingViaSiteLink() {
+    return Boolean(siteLinkFrom(document.activeElement));
+  }
+
+  function markSiteLinkActivation(event) {
+    if (!siteLinkFrom(event.target)) return;
+
+    ignoreLeave = true;
+    window.clearTimeout(ignoreTimer);
+    ignoreTimer = window.setTimeout(() => {
+      ignoreLeave = false;
+    }, 2500);
+  }
+
   function noteAdFocus() {
-    if (isAdElement(document.activeElement)) arm();
+    if (!isAdElement(document.activeElement)) return;
+    ignoreLeave = false;
+    arm();
   }
 
   function onLeavePage() {
+    if (ignoreLeave || leavingViaSiteLink()) return;
+
     noteAdFocus();
     if (isBlocked()) {
       wipeAds();
@@ -180,19 +215,41 @@
       if (isAdElement(event.target)) arm();
     };
 
+    const engageAd = (event) => {
+      if (!isAdElement(event.target)) return;
+      ignoreLeave = false;
+      arm();
+    };
+
     document.addEventListener('pointerover', armIfAd, true);
-    document.addEventListener('pointerdown', armIfAd, true);
-    document.addEventListener('touchstart', armIfAd, { capture: true, passive: true });
-    document.addEventListener('focusin', armIfAd, true);
-    document.addEventListener('focus', armIfAd, true);
+    document.addEventListener('pointerdown', (event) => {
+      if (isAdElement(event.target)) engageAd(event);
+      else markSiteLinkActivation(event);
+    }, true);
+    document.addEventListener('click', markSiteLinkActivation, true);
+    document.addEventListener('auxclick', markSiteLinkActivation, true);
+    document.addEventListener(
+      'touchstart',
+      (event) => {
+        if (isAdElement(event.target)) engageAd(event);
+        else markSiteLinkActivation(event);
+      },
+      { capture: true, passive: true },
+    );
+    document.addEventListener(
+      'keydown',
+      (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        markSiteLinkActivation(event);
+      },
+      true,
+    );
+    document.addEventListener('focusin', engageAd, true);
+    document.addEventListener('focus', engageAd, true);
 
     window.addEventListener('blur', () => {
-      noteAdFocus();
       onLeavePage();
-      window.setTimeout(() => {
-        noteAdFocus();
-        onLeavePage();
-      }, 0);
+      window.setTimeout(onLeavePage, 0);
     });
 
     document.addEventListener('visibilitychange', () => {
