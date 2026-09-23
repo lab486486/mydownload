@@ -59,11 +59,6 @@ const canonicalUrl = new URL(canonical ?? Astro.url.pathname, site.url).href;
       </div>
     </main>
     <Footer />
-    {!noindex && (
-      <script>
-        import { initAdsGuard } from '../lib/ads-guard';
-        initAdsGuard();
-      </script>
-    )}
+    {!noindex && <script is:inline src="/js/adsense-guard.js"></script>}
   </body>
 </html>
