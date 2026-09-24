@@ -13,8 +13,7 @@ npm run dev
 ```
 
 - 사이트: http://localhost:4321
-- 관리자(글 지시): http://localhost:4321/admin/ — 공개 메뉴에는 없습니다. `npm run dev`가 켜져 있어야 저장됩니다.
-- Decap CMS(기존 글 직접 수정): 다른 터미널에서 `npm run cms` 후 http://localhost:4321/admin/cms/
+- 관리자: http://localhost:4321/admin/ — Decap CMS. 로컬은 다른 터미널에서 `npm run cms` 후 엽니다. 배포 사이트는 GitHub 로그인만 통과합니다.
 
 ## 콘텐츠
 
@@ -28,7 +27,7 @@ npm run dev
 
 ## 다운로드 글 작성 흐름
 
-1. `/admin/`에서 프로그램 이름, 카테고리, 공식 다운로드 주소(하나 이상), 아이콘을 넣습니다.
+1. `/admin/`에서 GitHub 로그인 후 **자료 지시**에 프로그램 이름, 카테고리, 공식 다운로드 주소(하나 이상), 아이콘을 넣습니다. 이미 발행된 글은 **발행된 글**에서 고칩니다.
 2. `src/content/queue/{이름}.md`가 `status: pending`으로 저장됩니다.
 3. 이 파일을 GitHub에 올리면 `Publish software` 워크플로가 DeepSeek로 본문을 씁니다.
 4. 생성된 마크다운이 커밋되고, Cloudflare Pages가 다시 빌드합니다.
@@ -75,4 +74,4 @@ Decap에서 새로 올리는 이미지도 `public/uploads`로 들어갑니다. �
 
 ## Decap CMS + GitHub
 
-`public/admin/config.yml`의 `repo`를 실제 `계정/저장소`로 바꿉니다. GitHub OAuth 앱과 Cloudflare Worker 같은 인증 프록시가 필요합니다. 로컬에서는 `local_backend: true`와 `npm run cms`만으로 편집할 수 있습니다.
+배포된 `/admin/`은 GitHub OAuth로 잠깁니다. Cloudflare Pages 환경 변수 `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`을 쓰고, OAuth 앱 callback URL은 `https://mydownload.co.kr/api/oauth/callback`입니다. `lab486486/mydownload`에 쓰기 권한이 있는 계정만 들어갑니다. 로컬은 `local_backend: true`와 `npm run cms`로 편집합니다.

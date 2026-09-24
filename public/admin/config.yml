@@ -1,18 +1,31 @@
+# /admin/ 에서 GitHub 로그인 후 왼쪽 메뉴로 글을 넣습니다.
+# 자료 지시만 저장하면 GitHub Action이 DeepSeek로 본문을 씁니다.
+
+locale: ko
+
 backend:
   name: github
   repo: lab486486/mydownload
   branch: main
+  base_url: https://mydownload.co.kr
+  auth_endpoint: api/oauth/auth
+  commit_messages:
+    create: "Add {{collection}} “{{slug}}”"
+    update: "Update {{collection}} “{{slug}}”"
+    delete: "Delete {{collection}} “{{slug}}”"
+    uploadMedia: "Upload “{{path}}”"
+    deleteMedia: "Delete “{{path}}”"
+
 local_backend: true
 media_folder: public/uploads
 public_folder: /uploads
-locale: ko
 slug:
-  encoding: ascii
+  encoding: unicode
   clean_accents: true
 
 collections:
   - name: queue
-    label: 작성 지시
+    label: 자료 지시
     label_singular: 지시
     folder: src/content/queue
     create: true
@@ -45,10 +58,10 @@ collections:
         default: pending
       - { name: note, label: 메모, widget: string, required: false }
   - name: software
-    label: 소프트웨어
+    label: 발행된 글
     label_singular: 자료
     folder: src/content/software
-    create: true
+    create: false
     slug: '{{legacyId}}-{{name}}'
     extension: md
     format: frontmatter
